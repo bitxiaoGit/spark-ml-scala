@@ -42,7 +42,7 @@ object DirectKafakExample {
 
 
       //保存偏移量
-
+      //获取zk下该消费者的offset存储路径,一般该路径是/consumers/test_spark_streaming_group/offsets/topic_name
       val topicDirs = new ZKGroupTopicDirs("topic_test1_neo", topic)
       //val zkClient = new ZkClient("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181")
       val zkClient = ZkUtils.createZkClient("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181",60000,60000)
@@ -60,6 +60,7 @@ object DirectKafakExample {
 
 
         for (i <- 0 until children) {
+          // 表示字符串的拼接
           val partitionOffset = zkClient.readData[String](s"${topicDirs.consumerOffsetDir}/$i")
           val tp = new TopicPartition(topic, i)
           fromOffsets += (tp -> partitionOffset.toLong)
