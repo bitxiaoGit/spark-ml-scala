@@ -25,7 +25,7 @@ object DirectKafakExample {
         "bootstrap.servers" -> "neo-test-01:9092,neo-test-02:9092,neo-test-03:9092,neo-test-04:9092,neo-test-05:9092",
         "key.deserializer" -> classOf[StringDeserializer],
         "value.deserializer" -> classOf[StringDeserializer],
-        "group.id" -> "use_a_separate_group_id_for_each_stream",
+        "group.id" -> "consume_group",
         "auto.offset.reset" -> "latest",
         "enable.auto.commit" -> (false: java.lang.Boolean)
       )
@@ -36,14 +36,14 @@ object DirectKafakExample {
 
 
       //初始化驱动
-      val conf = new SparkConf().setMaster("local[8]").setAppName("TransformOPer")
+      val conf = new SparkConf().setMaster("local[8]").setAppName("direct example")
       val sc = new SparkContext(conf)
       val ssc = new StreamingContext(sc, Seconds(5))
 
 
       //保存偏移量
       //获取zk下该消费者的offset存储路径,一般该路径是/consumers/test_spark_streaming_group/offsets/topic_name
-      val topicDirs = new ZKGroupTopicDirs("topic_test1_neo", topic)
+      val topicDirs = new ZKGroupTopicDirs("consume_group", topic)
       //val zkClient = new ZkClient("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181")
       val zkClient = ZkUtils.createZkClient("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181", 60000, 60000)
       val children = zkClient.countChildren(s"${topicDirs.consumerOffsetDir}")
