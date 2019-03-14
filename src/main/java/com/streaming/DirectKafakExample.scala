@@ -45,7 +45,7 @@ object DirectKafakExample {
       //获取zk下该消费者的offset存储路径,一般该路径是/consumers/test_spark_streaming_group/offsets/topic_name
       val topicDirs = new ZKGroupTopicDirs("topic_test1_neo", topic)
       //val zkClient = new ZkClient("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181")
-      val zkClient = ZkUtils.createZkClient("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181",60000,60000)
+      val zkClient = ZkUtils.createZkClient("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181", 60000, 60000)
       val children = zkClient.countChildren(s"${topicDirs.consumerOffsetDir}")
 
 
@@ -55,7 +55,7 @@ object DirectKafakExample {
 
       val messageHandler = (mmd: MessageAndMetadata[String, String]) => (mmd.topic, mmd.message())
 
-      var stream: InputDStream[ConsumerRecord[String, String]]  = null
+      var stream: InputDStream[ConsumerRecord[String, String]] = null
       if (children > 0) {
 
 
@@ -87,7 +87,6 @@ object DirectKafakExample {
           aa.take(5).foreach(println)
 
 
-
         })
         //处理成功后获取偏移量
         val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
@@ -96,13 +95,18 @@ object DirectKafakExample {
           println(o.fromOffset.toString)
           val zkPath = s"${topicDirs.consumerOffsetDir}/${o.partition}"
           //保存偏移量到ZK
-          val zkConnection = ZkUtils.createZkClientAndConnection("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181",60000,60000)
+          val zkConnection = ZkUtils.createZkClientAndConnection("neo-test-01:2181,neo-test-02:2181,neo-test-03:2181,neo-test-04:2181,neo-test-05:2181", 60000, 60000)
           val zkUtils = new ZkUtils(zkConnection._1, zkConnection._2, false)
-          println(zkPath,o.fromOffset.toString)
-          zkUtils.updatePersistentPath(zkPath,o.fromOffset.toString)
+          println(zkPath, o.fromOffset.toString)
+          zkUtils.updatePersistentPath(zkPath, o.fromOffset.toString)
 
         }
+
+
+        stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
       })
+
+
 
       //启动程序
       //ssc.checkpoint("/tmp/checkpoint")
