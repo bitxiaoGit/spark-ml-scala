@@ -81,6 +81,7 @@ object DirectKafakExample {
 
       }
 
+      var offSetRanges = Array[OffsetRange]()
       //处理数据
       stream.foreachRDD(rdd => {
         rdd.foreachPartition(aa => {
@@ -88,9 +89,9 @@ object DirectKafakExample {
 
 
         })
-        //处理成功后获取偏移量
-        val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-        for (o <- offsetRanges) {
+        //处理成功后获取偏移量，并保存进zk中
+        offSetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+        for (o <- offSetRanges) {
 
           println(o.fromOffset.toString)
           val zkPath = s"${topicDirs.consumerOffsetDir}/${o.partition}"
@@ -102,10 +103,10 @@ object DirectKafakExample {
 
         }
 
-
-        stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
       })
 
+      // 提交kafka偏移量信息
+      stream.asInstanceOf[CanCommitOffsets].commitAsync(offSetRanges)
 
 
       //启动程序
